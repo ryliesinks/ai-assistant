@@ -8,6 +8,7 @@ import fitz
 
 DOCUMENT_FOLDER = Path("documents")
 
+# Function iterates through pages stroing data as text and parsing page number and content
 
 def extract_pdf(path: Path):
 
@@ -31,12 +32,13 @@ def extract_pdf(path: Path):
 
     return pages
 
+# This fucntion defines how big chunks are going to be and how to store them
 def chunk_text(
     text: str,
     chunk_size: int = 400,
     overlap: int = 80
 ):
-
+# This iterates through all of the wrods within the chunk and appends them together in a list
     words = text.split()
 
     chunks = []
@@ -60,6 +62,7 @@ def chunk_text(
 
     return chunks
 
+# This is parsing the information out of the chunks that were stored previously
 def process_pdf(path: Path):
 
     pages = extract_pdf(path)
@@ -85,6 +88,7 @@ def process_pdf(path: Path):
 
     return processed_chunks
 
+# This turns the chunks in to embeds that will be stored as 1536 numbers in the database
 def embed_chunks(chunks):
 
     texts = [
@@ -103,6 +107,7 @@ def embed_chunks(chunks):
 
     return chunks
 
+# This function saves the chunks and their embeddings to the database
 def save_chunks(chunks):
 
     with get_connection() as conn:
@@ -136,6 +141,7 @@ def save_chunks(chunks):
 
         conn.commit()
 
+# This function orchestrates the entire ingestion process for a single document, from processing to saving to the database
 def ingest_document(path: Path):
 
     print(f"Processing {path.name}")
@@ -155,6 +161,7 @@ def ingest_document(path: Path):
     print("Saved to database")
 
 
+# This function iterates through all PDF documents in the designated folder and ingests them one by one
 def ingest_all_documents():
 
     for path in DOCUMENT_FOLDER.glob("*.pdf"):

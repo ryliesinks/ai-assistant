@@ -5,7 +5,7 @@ from retrieval import retrieve_chunks
 
 client = OpenAI()
 
-
+#Details the specifics the LLM abides by when answering questions based on company documentation
 def answer_question(question: str):
 
     chunks = retrieve_chunks(

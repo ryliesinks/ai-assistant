@@ -1,7 +1,7 @@
 import psycopg
 
 from config import DATABASE_URL
-
+# main() connects Postgres to rest of workflow
 
 def main():
 

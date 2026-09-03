@@ -1,6 +1,6 @@
 from retrieval import retrieve_chunks
 
-
+# This script was a test for the LLM's responses and semantic search
 question = (
     "Can a customer get their money "
     "back if their product arrives broken?"

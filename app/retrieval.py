@@ -3,7 +3,7 @@ from pgvector import Vector
 from db import get_connection
 from embeddings import create_embedding
 
-
+# This function retrieves the most relevant chunks from the database based on the semantic similarity to the question.
 def retrieve_chunks(
     question: str,
     limit: int = 5
