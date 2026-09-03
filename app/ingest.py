@@ -1,5 +1,8 @@
 from pathlib import Path
+from embeddings import create_embeddings
+from pgvector import Vector
 
+from db import get_connection
 import fitz
 
 
@@ -28,7 +31,7 @@ def extract_pdf(path: Path):
 
     return pages
 
-    def chunk_text(
+def chunk_text(
     text: str,
     chunk_size: int = 400,
     overlap: int = 80
@@ -57,7 +60,7 @@ def extract_pdf(path: Path):
 
     return chunks
 
-    def process_pdf(path: Path):
+def process_pdf(path: Path):
 
     pages = extract_pdf(path)
 
@@ -81,3 +84,84 @@ def extract_pdf(path: Path):
             })
 
     return processed_chunks
+
+def embed_chunks(chunks):
+
+    texts = [
+        chunk["content"]
+        for chunk in chunks
+    ]
+
+    embeddings = create_embeddings(texts)
+
+    for chunk, embedding in zip(
+        chunks,
+        embeddings
+    ):
+
+        chunk["embedding"] = embedding
+
+    return chunks
+
+def save_chunks(chunks):
+
+    with get_connection() as conn:
+
+        with conn.cursor() as cursor:
+
+            for chunk in chunks:
+
+                cursor.execute(
+                    """
+                    INSERT INTO document_chunks
+                    (
+                        source_name,
+                        page_number,
+                        chunk_index,
+                        content,
+                        embedding
+                    )
+
+                    VALUES (%s, %s, %s, %s, %s)
+                    """,
+
+                    (
+                        chunk["source_name"],
+                        chunk["page_number"],
+                        chunk["chunk_index"],
+                        chunk["content"],
+                        Vector(chunk["embedding"])
+                    )
+                )
+
+        conn.commit()
+
+def ingest_document(path: Path):
+
+    print(f"Processing {path.name}")
+
+    chunks = process_pdf(path)
+
+    print(
+        f"Created {len(chunks)} chunks"
+    )
+
+    chunks = embed_chunks(chunks)
+
+    print("Created embeddings")
+
+    save_chunks(chunks)
+
+    print("Saved to database")
+
+
+def ingest_all_documents():
+
+    for path in DOCUMENT_FOLDER.glob("*.pdf"):
+
+        ingest_document(path)
+
+
+if __name__ == "__main__":
+
+    ingest_all_documents()
